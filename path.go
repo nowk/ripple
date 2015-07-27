@@ -6,6 +6,7 @@ type Namespace string
 
 var _ Controller = Namespace("")
 
+// Path returns a string implementing Controller
 func (n Namespace) Path() string {
 	if n == "" {
 		return "/"

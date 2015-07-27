@@ -10,7 +10,9 @@ import (
 
 const fieldTagKey = "ripple"
 
+// Controller is the interface for a Controller to be applied to an echo Group
 type Controller interface {
+	// Path is the namespace ripple will create the Group at, eg /posts
 	Path() string
 }
 
@@ -48,6 +50,9 @@ func reflectCtrl(c Controller) (reflect.Value, reflect.Type) {
 	return vof, typ
 }
 
+// Group applies the Controller to the echo via a new Group using the
+// Controller's ripple tags as a manifest to properly associate methods/path and
+// handler.
 func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 	var (
 		grp      = echoMux.Group(c.Path())
