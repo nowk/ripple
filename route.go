@@ -10,15 +10,15 @@ import (
 type tagInfo []string
 
 func (t tagInfo) Method() string {
-	return t[0]
-}
-
-func (t tagInfo) Path() string {
 	return t[1]
 }
 
-func (t tagInfo) Action() string {
+func (t tagInfo) Path() string {
 	return t[2]
+}
+
+func (t tagInfo) Action() string {
+	return t[0]
 }
 
 func (t tagInfo) Valid() bool {
@@ -26,21 +26,45 @@ func (t tagInfo) Valid() bool {
 }
 
 var (
-	errParseTagEmptyString  = errors.New("parseTag: cannot parse empty string")
-	errParseTagInvalidSplit = errors.New("parstTag: invalid split length")
+	errParseTagEmptyString = errors.New(
+		"parseRippleTag: cannot parse empty string")
+
+	errParseTagInvalidSplit = errors.New("parseRippleTag: invalid split length")
 )
 
-func parseTag(tag string) (tagInfo, error) {
-	if tag == "" {
-		return nil, errParseTagEmptyString
+func parseActionName(tagStr string, fieldName string) (string, string) {
+	s := strings.Split(tagStr, ",")
+	name := s[0]
+	if name == "" {
+		name = fieldName
 	}
 
-	tInfo := tagInfo(strings.Split(tag, ","))
-	if !tInfo.Valid() {
+	return name, s[1]
+}
+
+func parseMethPath(str string) (string, string) {
+	s := strings.Split(str, " ")
+	return s[0], s[1]
+}
+
+func parseRippleTag(field reflect.StructField) (tagInfo, error) {
+	tag := field.Tag.Get(fieldTagKey)
+	if tag == "" {
+		return nil, nil
+	}
+
+	var info tagInfo
+
+	name, methPath := parseActionName(tag, field.Name)
+	info = append(info, name)
+	meth, path := parseMethPath(methPath)
+	info = append(info, meth, path)
+
+	if !info.Valid() {
 		return nil, errParseTagInvalidSplit
 	}
 
-	return tInfo, nil
+	return info, nil
 }
 
 func trimSlashR(path string) string {
@@ -53,20 +77,36 @@ type route struct {
 	Handler reflect.Value // TODO do we have any need to make this echo.Handler?
 }
 
-func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
-	tag := field.Tag.Get(fieldTagKey)
-	if tag == "" {
-		return nil, nil
+func getHandler(name string, v reflect.Value) (reflect.Value, error) {
+	var fn reflect.Value
+
+	// first search methods
+	fn = v.MethodByName(name)
+	if fn.IsValid() {
+		return fn, nil
 	}
 
-	tInfo, err := parseTag(tag)
+	// then search fields
+	fn = v.FieldByName(name)
+	if fn.IsValid() && !reflect.ValueOf(fn.Interface()).IsNil() {
+		return fn, nil
+	}
+
+	return fn, fmt.Errorf("action method not found: %s", name)
+}
+
+func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
+	tInfo, err := parseRippleTag(field)
 	if err != nil {
 		return nil, err
 	}
+	if tInfo == nil {
+		return nil, nil // no ripple tag
+	}
 
-	handler := v.MethodByName(tInfo.Action())
-	if !handler.IsValid() {
-		return nil, fmt.Errorf("action method not found: %s", tInfo.Action())
+	handler, err := getHandler(tInfo.Action(), v)
+	if err != nil {
+		return nil, err
 	}
 
 	// TODO check that the field type matches the method signature

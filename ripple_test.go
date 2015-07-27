@@ -13,12 +13,12 @@ import (
 type CtrlOne struct {
 	Namespace
 
-	_ http.HandlerFunc `ripple:"GET,/,Index"`
-	_ http.HandlerFunc `ripple:"POST,/,Create"`
-	_ echo.HandlerFunc `ripple:"GET,/:id,Show"`
-	_ echo.HandlerFunc `ripple:"PUT,/:id,Update"`
-	_ echo.HandlerFunc `ripple:"PATCH,/:id,Update"`
-	_ echo.HandlerFunc `ripple:"DELETE,/:id,Del"`
+	_ http.HandlerFunc `ripple:"Index,GET /"`
+	_ http.HandlerFunc `ripple:"Create,POST /"`
+	_ echo.HandlerFunc `ripple:"Show,GET /:id"`
+	_ echo.HandlerFunc `ripple:"Update,PUT /:id"`
+	_ echo.HandlerFunc `ripple:"Update,PATCH /:id"`
+	_ echo.HandlerFunc `ripple:"Del,DELETE /:id"`
 }
 
 func (p CtrlOne) Index(w http.ResponseWriter, req *http.Request) {
@@ -80,7 +80,7 @@ func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 type CtrlUnknownMethod struct {
 	Namespace
 
-	_ http.HandlerFunc `ripple:"GETS,/,Index"`
+	_ http.HandlerFunc `ripple:"Index,GETS /"`
 }
 
 func (CtrlUnknownMethod) Index(w http.ResponseWriter, req *http.Request) {
@@ -104,7 +104,7 @@ type CtrlInternalField struct {
 	Namespace
 
 	AccessKey string
-	_         http.HandlerFunc `ripple:"GET,/,Index"`
+	_         http.HandlerFunc `ripple:"Index,GET /"`
 }
 
 func (c CtrlInternalField) Index(w http.ResponseWriter, req *http.Request) {
@@ -133,7 +133,7 @@ func TestAccessingInternalFields(t *testing.T) {
 type CtrlMethodNotFound struct {
 	Namespace
 
-	_ http.HandlerFunc `ripple:"GET,/,Index"`
+	_ http.HandlerFunc `ripple:"Index,GET /"`
 }
 
 func TestPanicOnnewRouteError(t *testing.T) {
@@ -159,5 +159,47 @@ func TestPanicsIfNotAStruct(t *testing.T) {
 	exp := errControllerInvalidType
 	if !reflect.DeepEqual(exp, got) {
 		t.Errorf("expected %s, got %s", exp.Error(), got.Error())
+	}
+}
+
+type CtrlAssignOnField struct {
+	Namespace
+
+	Index http.HandlerFunc `ripple:",GET /"`
+}
+
+func TestUseAssignedHandlerOnField(t *testing.T) {
+	var index = func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, "[%s] %s #Index", req.Method, req.URL.Path)
+	}
+
+	echoMux := echo.New()
+	_ = Group(&CtrlAssignOnField{Index: index}, echoMux)
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := httptest.NewRecorder()
+
+	echoMux.ServeHTTP(w, req)
+
+	exp := "[GET] / #Index"
+	got := w.Body.String()
+	if exp != got {
+		t.Errorf("expected %s, got %s", exp, got)
+	}
+}
+
+func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
+	echoMux := echo.New()
+
+	got := catch(func() {
+		_ = Group(&CtrlAssignOnField{}, echoMux)
+	})
+
+	exp := fmt.Errorf("action method not found: Index")
+	if !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected action method not found error, got %s", got.Error())
 	}
 }
