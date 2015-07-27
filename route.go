@@ -52,7 +52,7 @@ func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
 	}, nil
 }
 
-func (r route) ToArgs() []reflect.Value {
+func (r route) CallArgs() []reflect.Value {
 	return []reflect.Value{
 		reflect.ValueOf(r.Path),
 		r.Handler,

@@ -77,7 +77,7 @@ func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 			panic(fmt.Errorf("unknown method map: %s", rt.Method))
 		}
 		methFunc := grpValue.MethodByName(meth)
-		methFunc.Call(rt.ToArgs())
+		methFunc.Call(rt.CallArgs())
 	}
 
 	return grp
