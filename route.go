@@ -38,7 +38,7 @@ func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
 		return nil, nil // no ripple tag
 	}
 
-	handler, err := getHandler(tInfo.Action(), v)
+	handler, err := getHandler(tInfo.ActionName(), v)
 	if err != nil {
 		return nil, err
 	}

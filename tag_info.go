@@ -17,7 +17,7 @@ func (t tagInfo) Path() string {
 	return strings.TrimRight(t[2], "/")
 }
 
-func (t tagInfo) Action() string {
+func (t tagInfo) ActionName() string {
 	return t[0]
 }
 
