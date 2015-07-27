@@ -13,35 +13,34 @@ import (
 type CtrlOne struct {
 	Namespace
 
-	_ http.HandlerFunc `ripple:"Index,GET /"`
-	_ http.HandlerFunc `ripple:"Create,POST /"`
-	_ echo.HandlerFunc `ripple:"Show,GET /:id"`
-	_ echo.HandlerFunc `ripple:"Update,PUT /:id"`
-	_ echo.HandlerFunc `ripple:"Update,PATCH /:id"`
-	_ echo.HandlerFunc `ripple:"Del,DELETE /:id"`
+	Index  http.HandlerFunc `ripple:"GET /"`
+	Create http.HandlerFunc `ripple:"POST /"`
+	Show   echo.HandlerFunc `ripple:"GET /:id"`
+	Update echo.HandlerFunc `ripple:"PUT /:id"`
+	Del    echo.HandlerFunc `ripple:"DELETE /:id"`
 }
 
-func (p CtrlOne) Index(w http.ResponseWriter, req *http.Request) {
+func (p CtrlOne) IndexFunc(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "[%s] %s #Index", req.Method, req.URL.Path)
 }
 
-func (p CtrlOne) Create(w http.ResponseWriter, req *http.Request) {
+func (p CtrlOne) CreateFunc(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "[%s] %s #Create", req.Method, req.URL.Path)
 }
 
-func (p CtrlOne) Show(c *echo.Context) error {
+func (p CtrlOne) ShowFunc(c *echo.Context) error {
 	req := c.Request()
 	c.HTML(200, "[%s] %s #Show:%s", req.Method, req.URL.Path, c.Param("id"))
 	return nil
 }
 
-func (p CtrlOne) Update(c *echo.Context) error {
+func (p CtrlOne) UpdateFunc(c *echo.Context) error {
 	req := c.Request()
 	c.HTML(200, "[%s] %s #Update:%s", req.Method, req.URL.Path, c.Param("id"))
 	return nil
 }
 
-func (p CtrlOne) Del(c *echo.Context) error {
+func (p CtrlOne) DelFunc(c *echo.Context) error {
 	req := c.Request()
 	c.HTML(200, "[%s] %s #Del:%s", req.Method, req.URL.Path, c.Param("id"))
 	return nil
@@ -58,7 +57,7 @@ func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 		{"POST", "/posts", "Create"},
 		{"GET", "/posts/123", "Show:123"},
 		{"PUT", "/posts/123", "Update:123"},
-		{"PATCH", "/posts/123", "Update:123"},
+		// {"PATCH", "/posts/123", "Update:123"},
 		{"DELETE", "/posts/123", "Del:123"},
 	} {
 		req, err := http.NewRequest(v.meth, v.Namespace, nil)
@@ -80,10 +79,10 @@ func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 type CtrlUnknownMethod struct {
 	Namespace
 
-	_ http.HandlerFunc `ripple:"Index,GETS /"`
+	Index http.HandlerFunc `ripple:"GETS /"`
 }
 
-func (CtrlUnknownMethod) Index(w http.ResponseWriter, req *http.Request) {
+func (CtrlUnknownMethod) IndexFunc(w http.ResponseWriter, req *http.Request) {
 	//
 }
 
@@ -104,10 +103,10 @@ type CtrlInternalField struct {
 	Namespace
 
 	AccessKey string
-	_         http.HandlerFunc `ripple:"Index,GET /"`
+	Index     http.HandlerFunc `ripple:"GET /"`
 }
 
-func (c CtrlInternalField) Index(w http.ResponseWriter, req *http.Request) {
+func (c CtrlInternalField) IndexFunc(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "AccessKey is %s", c.AccessKey)
 }
 
@@ -133,7 +132,7 @@ func TestAccessingInternalFields(t *testing.T) {
 type CtrlMethodNotFound struct {
 	Namespace
 
-	_ http.HandlerFunc `ripple:"Index,GET /"`
+	Index http.HandlerFunc `ripple:"GET /"`
 }
 
 func TestPanicOnnewRouteError(t *testing.T) {
@@ -165,7 +164,7 @@ func TestPanicsIfNotAStruct(t *testing.T) {
 type CtrlAssignOnField struct {
 	Namespace
 
-	Index http.HandlerFunc `ripple:",GET /"`
+	Index http.HandlerFunc `ripple:"GET /"`
 }
 
 func TestUseAssignedHandlerOnField(t *testing.T) {
@@ -203,3 +202,15 @@ func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
 		t.Errorf("expected action method not found error, got %s", got.Error())
 	}
 }
+
+// type CtrlWithMiddleware struct {
+// 	Namespace
+
+// 	_ echo.MiddlewareFunc `ripple:"*"`
+// 	_ http.HandlerFunc    `ripple:"Index,GET /"`
+// }
+
+// func TestMiddlewareSupport(t *testing.T) {
+// 	echoMux := echo.New()
+
+// }

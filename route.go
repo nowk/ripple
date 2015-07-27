@@ -6,39 +6,39 @@ import (
 )
 
 type route struct {
-	Method  string
-	Path    string
+	*fieldInfo
+
 	Handler reflect.Value // TODO do we have any need to make this echo.Handler?
 }
 
-func getHandler(name string, v reflect.Value) (reflect.Value, error) {
+func getHandler(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	var fn reflect.Value
 
 	// first search methods
-	fn = v.MethodByName(name)
+	fn = v.MethodByName(info.MethodName())
 	if fn.IsValid() {
 		return fn, nil
 	}
 
 	// then search fields
-	fn = v.FieldByName(name)
+	fn = v.FieldByName(info.Name)
 	if fn.IsValid() && !reflect.ValueOf(fn.Interface()).IsNil() {
 		return fn, nil
 	}
 
-	return fn, fmt.Errorf("action method not found: %s", name)
+	return fn, fmt.Errorf("action method not found: %s", info.Name)
 }
 
 func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
-	tInfo, err := newTagInfo(field)
+	info, err := newFieldInfo(structField{field})
 	if err != nil {
 		return nil, err
 	}
-	if tInfo == nil {
+	if info == nil {
 		return nil, nil // no ripple tag
 	}
 
-	handler, err := getHandler(tInfo.ActionName(), v)
+	handler, err := getHandler(info, v)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +46,8 @@ func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
 	// TODO check that the field type matches the method signature
 
 	return &route{
-		Method:  tInfo.Method(),
-		Path:    tInfo.Path(),
+		fieldInfo: info,
+
 		Handler: handler,
 	}, nil
 }
@@ -57,4 +57,21 @@ func (r route) CallArgs() []reflect.Value {
 		reflect.ValueOf(r.Path),
 		r.Handler,
 	}
+}
+
+// structField is a wrapper that implements structFielder
+type structField struct {
+	field reflect.StructField
+}
+
+func (f structField) Tag() string {
+	return f.field.Tag.Get(fieldTagKey)
+}
+
+func (f structField) Name() string {
+	return f.field.Name
+}
+
+func (f structField) Type() reflect.Type {
+	return f.field.Type
 }
