@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-type CtrlOne struct {
+type CtrlBasic struct {
 	Namespace
 
 	Index  http.HandlerFunc `ripple:"GET /"`
@@ -20,27 +20,27 @@ type CtrlOne struct {
 	Del    echo.HandlerFunc `ripple:"DELETE /:id"`
 }
 
-func (p CtrlOne) IndexFunc(w http.ResponseWriter, req *http.Request) {
+func (CtrlBasic) IndexFunc(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "[%s] %s #Index", req.Method, req.URL.Path)
 }
 
-func (p CtrlOne) CreateFunc(w http.ResponseWriter, req *http.Request) {
+func (CtrlBasic) CreateFunc(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "[%s] %s #Create", req.Method, req.URL.Path)
 }
 
-func (p CtrlOne) ShowFunc(c *echo.Context) error {
+func (CtrlBasic) ShowFunc(c *echo.Context) error {
 	req := c.Request()
 	c.HTML(200, "[%s] %s #Show:%s", req.Method, req.URL.Path, c.Param("id"))
 	return nil
 }
 
-func (p CtrlOne) UpdateFunc(c *echo.Context) error {
+func (CtrlBasic) UpdateFunc(c *echo.Context) error {
 	req := c.Request()
 	c.HTML(200, "[%s] %s #Update:%s", req.Method, req.URL.Path, c.Param("id"))
 	return nil
 }
 
-func (p CtrlOne) DelFunc(c *echo.Context) error {
+func (CtrlBasic) DelFunc(c *echo.Context) error {
 	req := c.Request()
 	c.HTML(200, "[%s] %s #Del:%s", req.Method, req.URL.Path, c.Param("id"))
 	return nil
@@ -48,7 +48,7 @@ func (p CtrlOne) DelFunc(c *echo.Context) error {
 
 func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 	echoMux := echo.New()
-	_ = Group(&CtrlOne{Namespace: "/posts"}, echoMux)
+	_ = Group(&CtrlBasic{Namespace: "/posts"}, echoMux)
 
 	for _, v := range []struct {
 		meth, Namespace, extra string
