@@ -17,7 +17,7 @@ type Controller interface {
 
 var errControllerInvalidType = errors.New("controllers must be struct types")
 
-func reflectCtrl(c Controller) (reflect.Value, reflect.Type) {
+func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
 	vof := reflect.ValueOf(c)
 	typ := vof.Type()
 
@@ -26,22 +26,24 @@ func reflectCtrl(c Controller) (reflect.Value, reflect.Type) {
 		typ = vof.Type()
 	}
 
+	var err error
 	if typ.Kind() != reflect.Struct {
-		panic(errControllerInvalidType)
+		err = errControllerInvalidType
 	}
 
-	return vof, typ
+	return vof, typ, err
 }
 
 // Group applies the Controller to the echo via a new Group using the
 // Controller's ripple tags as a manifest to properly associate methods/path and
 // handler.
 func Group(c Controller, echoMux *echo.Echo) *echo.Group {
-	var (
-		grp = echoMux.Group(c.Path())
+	cvof, ctyp, err := reflectCtrl(c)
+	if err != nil {
+		panic(err)
+	}
 
-		cvof, ctyp = reflectCtrl(c)
-	)
+	grp := echoMux.Group(c.Path())
 
 	i := 0
 	n := ctyp.NumField()
