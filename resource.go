@@ -34,19 +34,17 @@ func newResource(
 	field reflect.StructField, v reflect.Value) (*resource, error) {
 
 	info, err := newFieldInfo(structField{field})
-	if err != nil {
+	if err != nil || info == nil {
 		return nil, err
-	}
-	if info == nil {
-		return nil, nil // no ripple tag
 	}
 
 	fn, err := getResourceFunc(info, v)
 	if err != nil {
 		return nil, err
 	}
-
-	// TODO check that the field type matches the method signature
+	if !fn.Type().ConvertibleTo(info.Type) {
+		return nil, fmt.Errorf("mismatched types")
+	}
 
 	return &resource{
 		fieldInfo: info,

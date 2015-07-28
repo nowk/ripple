@@ -183,8 +183,8 @@ func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
 type CtrlWithMiddleware struct {
 	Namespace
 
-	Log   echo.MiddlewareFunc `ripple:"*"`
-	Index http.HandlerFunc    `ripple:"GET /"`
+	Log   echo.Middleware  `ripple:"*"`
+	Index http.HandlerFunc `ripple:"GET /"`
 }
 
 func (CtrlWithMiddleware) LogFunc(next http.Handler) http.Handler {
