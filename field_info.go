@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+// echoType represents one of the 2 types that can be mounted onto an Echo Group
+// either an Handler or a Middlerware
 type echoType int
 
 const (
@@ -16,7 +18,8 @@ const (
 	handler
 )
 
-// fieldInfo is the basic meta data parsed from a struct field
+// fieldInfo is the basic meta data parsed from a struct field. This does not
+// include the actual field value or the <name>Func method it represents.
 type fieldInfo struct {
 	Path   string
 	Method string

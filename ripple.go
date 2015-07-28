@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo"
 )
 
+// fieldTagKey is the field tag key for ripple
 const fieldTagKey = "ripple"
 
 // Controller is the interface for a Controller to be applied to an echo Group

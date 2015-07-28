@@ -8,10 +8,11 @@ import (
 	"github.com/labstack/echo"
 )
 
+// resource represents the handler/middleware to be mounted onto an Echo Group
 type resource struct {
 	*fieldInfo
 
-	Func reflect.Value // TODO do we have any need to make this echo.Handler?
+	Func reflect.Value
 }
 
 type errActionNotFound string
@@ -20,6 +21,8 @@ func (e errActionNotFound) Error() string {
 	return fmt.Sprintf("action not found: %s", string(e))
 }
 
+// getResourceFunc returns the associated <name>Func method for a defined ripple
+// field or the actual field value if the <name>Func association is not found.
 func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	var fn reflect.Value
 
