@@ -75,7 +75,7 @@ func Test_newFieldInfoParsesTagAndReturnsAfieldInfo(t *testing.T) {
 	}
 }
 
-func Test_newFieldErrorsOnInvalidTagFormat(t *testing.T) {
+func Test_newFieldInfoErrorsOnInvalidTagFormat(t *testing.T) {
 	for _, v := range []string{
 		"GET/",
 		"GET / ",
@@ -87,5 +87,16 @@ func Test_newFieldErrorsOnInvalidTagFormat(t *testing.T) {
 		if err != errInvalidTagSplit {
 			t.Error("expected invalid tag split error")
 		}
+	}
+}
+
+func Test_newFieldInfoErrorsOnBadMethod(t *testing.T) {
+	_, err := newFieldInfo(&tfield{
+		tag: "GETS /",
+	})
+
+	exp := fmt.Errorf("invalid method: GETS")
+	if !reflect.DeepEqual(exp, err) {
+		t.Errorf("expected %s, got %s", exp, err)
 	}
 }

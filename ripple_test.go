@@ -76,29 +76,6 @@ func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 	}
 }
 
-type CtrlUnknownMethod struct {
-	Namespace
-
-	Index http.HandlerFunc `ripple:"GETS /"`
-}
-
-func (CtrlUnknownMethod) IndexFunc(w http.ResponseWriter, req *http.Request) {
-	//
-}
-
-func TestPanicsIfMethodIsNotInMethodMap(t *testing.T) {
-	echoMux := echo.New()
-
-	got := catch(func() {
-		_ = Group(&CtrlUnknownMethod{}, echoMux)
-	})
-
-	exp := fmt.Errorf("unknown method map: %s", "GETS")
-	if !reflect.DeepEqual(exp, got) {
-		t.Errorf("expected unknown method map error, got %s", got.Error())
-	}
-}
-
 type CtrlInternalField struct {
 	Namespace
 
@@ -203,14 +180,40 @@ func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
 	}
 }
 
-// type CtrlWithMiddleware struct {
-// 	Namespace
+type CtrlWithMiddleware struct {
+	Namespace
 
-// 	_ echo.MiddlewareFunc `ripple:"*"`
-// 	_ http.HandlerFunc    `ripple:"Index,GET /"`
-// }
+	Log   echo.MiddlewareFunc `ripple:"*"`
+	Index http.HandlerFunc    `ripple:"GET /"`
+}
 
-// func TestMiddlewareSupport(t *testing.T) {
-// 	echoMux := echo.New()
+func (CtrlWithMiddleware) LogFunc(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Write([]byte("log in"))
+		next.ServeHTTP(w, req)
+		w.Write([]byte("log out"))
+	})
+}
 
-// }
+func (CtrlWithMiddleware) IndexFunc(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "[%s] %s #Index", req.Method, req.URL.Path)
+}
+
+func TestMiddlewareSupport(t *testing.T) {
+	echoMux := echo.New()
+	_ = Group(&CtrlWithMiddleware{}, echoMux)
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := httptest.NewRecorder()
+
+	echoMux.ServeHTTP(w, req)
+
+	exp := "log in[GET] / #Indexlog out"
+	got := w.Body.String()
+	if exp != got {
+		t.Errorf("expected %s, got %s", exp, got)
+	}
+}

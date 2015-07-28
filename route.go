@@ -5,13 +5,13 @@ import (
 	"reflect"
 )
 
-type route struct {
+type resource struct {
 	*fieldInfo
 
-	Handler reflect.Value // TODO do we have any need to make this echo.Handler?
+	Func reflect.Value // TODO do we have any need to make this echo.Handler?
 }
 
-func getHandler(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
+func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	var fn reflect.Value
 
 	// first search methods
@@ -29,7 +29,7 @@ func getHandler(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	return fn, fmt.Errorf("action method not found: %s", info.Name)
 }
 
-func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
+func newResource(v reflect.Value, field reflect.StructField) (*resource, error) {
 	info, err := newFieldInfo(structField{field})
 	if err != nil {
 		return nil, err
@@ -38,25 +38,36 @@ func newRoute(v reflect.Value, field reflect.StructField) (*route, error) {
 		return nil, nil // no ripple tag
 	}
 
-	handler, err := getHandler(info, v)
+	fn, err := getResourceFunc(info, v)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO check that the field type matches the method signature
 
-	return &route{
+	return &resource{
 		fieldInfo: info,
 
-		Handler: handler,
+		Func: fn,
 	}, nil
 }
 
-func (r route) CallArgs() []reflect.Value {
-	return []reflect.Value{
-		reflect.ValueOf(r.Path),
-		r.Handler,
+func (r resource) CallName() string {
+	if r.EchoType == middleware {
+		return "Use"
 	}
+
+	return methodMap[r.Method]
+}
+
+func (r resource) CallArgs() []reflect.Value {
+	args := []reflect.Value{r.Func}
+
+	if r.EchoType == middleware {
+		return args
+	}
+
+	return append([]reflect.Value{reflect.ValueOf(r.Path)}, args...)
 }
 
 // structField is a wrapper that implements structFielder

@@ -36,13 +36,35 @@ type structFielder interface {
 
 var errInvalidTagSplit = errors.New("invalid tag split")
 
+// methodMap maps all echo methods that match the func(string, echo.Handler)
+// signature used to add method routes
+var methodMap = map[string]string{
+	"GET":     "Get",
+	"POST":    "Post",
+	"PUT":     "Put",
+	"PATCH":   "Patch",
+	"DELETE":  "Delete",
+	"HEAD":    "Head",
+	"OPTIONS": "Options",
+	"CONNECT": "Connect",
+	"TRACE":   "Trace",
+
+	// TODO add WebSocket?
+}
+
 func parseTag(str string) (string, string, error) {
 	s := strings.Split(str, " ")
 	if len(s) != 2 {
 		return "", "", errInvalidTagSplit
 	}
 
-	return s[0], s[1], nil
+	meth := s[0]
+	_, ok := methodMap[meth]
+	if !ok {
+		return "", "", fmt.Errorf("invalid method: %s", meth)
+	}
+
+	return meth, s[1], nil
 }
 
 func newFieldInfo(f structFielder) (*fieldInfo, error) {
