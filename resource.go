@@ -1,6 +1,7 @@
 package ripple
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -37,6 +38,8 @@ func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	return fn, errActionNotFound(info.Name)
 }
 
+var errTypeMismatch = errors.New("field and method types do not match")
+
 func newResource(
 	field reflect.StructField, v reflect.Value) (*resource, error) {
 
@@ -50,7 +53,7 @@ func newResource(
 		return nil, err
 	}
 	if !fn.Type().ConvertibleTo(info.Type) {
-		return nil, fmt.Errorf("mismatched types")
+		return nil, errTypeMismatch
 	}
 
 	return &resource{

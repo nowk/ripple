@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	"github.com/labstack/echo"
@@ -48,7 +47,7 @@ func (CtrlBasic) DelFunc(c *echo.Context) error {
 
 func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 	echoMux := echo.New()
-	_ = Group(&CtrlBasic{Namespace: "/posts"}, echoMux)
+	Group(&CtrlBasic{Namespace: "/posts"}, echoMux)
 
 	for _, v := range []struct {
 		meth, Namespace, extra string
@@ -88,21 +87,12 @@ func (c CtrlInternalField) IndexFunc(w http.ResponseWriter, req *http.Request) {
 }
 
 func TestAccessingInternalFields(t *testing.T) {
-	echoMux := echo.New()
-	_ = Group(&CtrlInternalField{AccessKey: "myaccesskey"}, echoMux)
+	w := send("GET", "/", func(echoMux *echo.Echo) {
+		Group(&CtrlInternalField{AccessKey: "myaccesskey"}, echoMux)
+	}, t)
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	w := httptest.NewRecorder()
-
-	echoMux.ServeHTTP(w, req)
-
-	exp := "AccessKey is myaccesskey"
-	got := w.Body.String()
-	if exp != got {
-		t.Errorf("expected %s, got %s", exp, got)
+	if got := w.Body.String(); "AccessKey is myaccesskey" != got {
+		t.Errorf("incorrect handler output, got %s", got)
 	}
 }
 
@@ -113,28 +103,22 @@ type CtrlMethodNotFound struct {
 }
 
 func TestPanicOnnewRouteError(t *testing.T) {
-	echoMux := echo.New()
-
-	got := catch(func() {
-		_ = Group(&CtrlMethodNotFound{}, echoMux)
+	err := catch(func() {
+		Group(&CtrlMethodNotFound{}, echo.New())
 	})
 
-	exp := errActionNotFound("Index")
-	if exp != got {
-		t.Errorf("exp %s, got %s", exp, got)
+	if errActionNotFound("Index") != err {
+		t.Errorf("expected action not found error, got %s", err)
 	}
 }
 
 func TestPanicsIfNotAStruct(t *testing.T) {
-	echoMux := echo.New()
-
-	got := catch(func() {
-		_ = Group(Namespace("/posts"), echoMux)
+	err := catch(func() {
+		Group(Namespace("/posts"), echo.New())
 	})
 
-	exp := errNotStruct
-	if !reflect.DeepEqual(exp, got) {
-		t.Errorf("expected %s, got %s", exp.Error(), got.Error())
+	if errNotStruct != err {
+		t.Errorf("expected not struct error, got %s", err)
 	}
 }
 
@@ -145,38 +129,26 @@ type CtrlAssignOnField struct {
 }
 
 func TestUseAssignedHandlerOnField(t *testing.T) {
-	var index = func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "[%s] %s #Index", req.Method, req.URL.Path)
-	}
+	w := send("GET", "/", func(echoMux *echo.Echo) {
+		Group(&CtrlAssignOnField{
+			Index: func(w http.ResponseWriter, req *http.Request) {
+				fmt.Fprintf(w, "[%s] %s #Index", req.Method, req.URL.Path)
+			},
+		}, echoMux)
+	}, t)
 
-	echoMux := echo.New()
-	_ = Group(&CtrlAssignOnField{Index: index}, echoMux)
-
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	w := httptest.NewRecorder()
-
-	echoMux.ServeHTTP(w, req)
-
-	exp := "[GET] / #Index"
-	got := w.Body.String()
-	if exp != got {
-		t.Errorf("expected %s, got %s", exp, got)
+	if got := w.Body.String(); "[GET] / #Index" != got {
+		t.Errorf("incorrect handler output, got %s", got)
 	}
 }
 
 func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
-	echoMux := echo.New()
-
-	got := catch(func() {
-		_ = Group(&CtrlAssignOnField{}, echoMux)
+	err := catch(func() {
+		Group(&CtrlAssignOnField{}, echo.New())
 	})
 
-	exp := errActionNotFound("Index")
-	if exp != got {
-		t.Errorf("expected %s, got %s", exp, got)
+	if errActionNotFound("Index") != err {
+		t.Errorf("expected action not found error, got %s", err)
 	}
 }
 
@@ -191,19 +163,12 @@ func (CtrlMismatch) IndexFunc(_ http.ResponseWriter, _ *http.Request) {
 }
 
 func TestFieldTypeDoesNotMatchMethodType(t *testing.T) {
-	c := new(CtrlMismatch)
+	err := catch(func() {
+		Group(&CtrlMismatch{}, echo.New())
+	})
 
-	vof := reflect.ValueOf(c).Elem()
-	fld, ok := vof.Type().FieldByName("Index")
-	if !ok {
-		t.Fatalf("unknown field %s", "Index")
-	}
-
-	_, err := newResource(fld, vof)
-
-	exp := fmt.Errorf("mismatched types")
-	if !reflect.DeepEqual(exp, err) {
-		t.Errorf("expected mismatched types error, got %s", err)
+	if errTypeMismatch != err {
+		t.Errorf("expected type mismatch error, got %s", err)
 	}
 }
 
@@ -227,20 +192,11 @@ func (CtrlWithMiddleware) IndexFunc(w http.ResponseWriter, req *http.Request) {
 }
 
 func TestMiddlewareSupport(t *testing.T) {
-	echoMux := echo.New()
-	_ = Group(&CtrlWithMiddleware{}, echoMux)
+	w := send("GET", "/", func(echoMux *echo.Echo) {
+		Group(&CtrlWithMiddleware{}, echoMux)
+	}, t)
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	w := httptest.NewRecorder()
-
-	echoMux.ServeHTTP(w, req)
-
-	exp := "log in[GET] / #Indexlog out"
-	got := w.Body.String()
-	if exp != got {
-		t.Errorf("expected %s, got %s", exp, got)
+	if got := w.Body.String(); "log in[GET] / #Indexlog out" != got {
+		t.Errorf("expected middleware output, got %s", got)
 	}
 }
