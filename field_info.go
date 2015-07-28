@@ -59,18 +59,20 @@ func (e errHttpMethod) Error() string {
 }
 
 func parseTag(str string) (string, string, error) {
-	s := strings.Split(str, " ")
-	if len(s) != 2 {
+	split := strings.Split(str, " ")
+	if len(split) != 2 {
 		return "", "", errTagFormat
 	}
 
-	meth := s[0]
+	meth := split[0]
+	path := split[1]
+
 	_, ok := methodMap[meth]
 	if !ok {
 		return "", "", errHttpMethod(meth)
 	}
 
-	return meth, s[1], nil
+	return meth, path, nil
 }
 
 func newFieldInfo(f structFielder) (*fieldInfo, error) {
@@ -82,7 +84,7 @@ func newFieldInfo(f structFielder) (*fieldInfo, error) {
 	var (
 		err error
 
-		ectype     echoType
+		ecType     echoType
 		meth, path string
 	)
 
@@ -92,9 +94,9 @@ func newFieldInfo(f structFielder) (*fieldInfo, error) {
 			return nil, err
 		}
 
-		ectype = handler
+		ecType = handler
 	} else {
-		ectype = middleware
+		ecType = middleware
 	}
 
 	return &fieldInfo{
@@ -103,7 +105,7 @@ func newFieldInfo(f structFielder) (*fieldInfo, error) {
 		Name:   f.Name(),
 		Type:   f.Type(),
 
-		EchoType: ectype,
+		EchoType: ecType,
 	}, nil
 }
 

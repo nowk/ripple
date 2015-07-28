@@ -48,15 +48,15 @@ func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 	i := 0
 	n := ctyp.NumField()
 	for ; i < n; i++ {
-		re, err := newResource(ctyp.Field(i), cvof)
+		res, err := newResource(ctyp.Field(i), cvof)
 		if err != nil {
 			panic(err)
 		}
-		if re == nil {
+		if res == nil {
 			continue // if there is no route
 		}
 
-		re.Set(grp)
+		res.Set(grp)
 	}
 
 	return grp
