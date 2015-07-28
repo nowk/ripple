@@ -84,7 +84,7 @@ func Test_newFieldInfoErrorsOnInvalidTagFormat(t *testing.T) {
 			tag: v,
 		})
 
-		if err != errInvalidTagSplit {
+		if err != errTagFormat {
 			t.Error("expected invalid tag split error")
 		}
 	}
@@ -95,8 +95,8 @@ func Test_newFieldInfoErrorsOnBadMethod(t *testing.T) {
 		tag: "GETS /",
 	})
 
-	exp := fmt.Errorf("invalid method: GETS")
-	if !reflect.DeepEqual(exp, err) {
+	exp := errHttpMethod("GETS")
+	if exp != err {
 		t.Errorf("expected %s, got %s", exp, err)
 	}
 }

@@ -34,7 +34,7 @@ type structFielder interface {
 	Type() reflect.Type
 }
 
-var errInvalidTagSplit = errors.New("invalid tag split")
+var errTagFormat = errors.New("invalid tag format")
 
 // methodMap maps all echo methods that match the func(string, echo.Handler)
 // signature used to add method routes
@@ -52,16 +52,22 @@ var methodMap = map[string]string{
 	// TODO add WebSocket?
 }
 
+type errHttpMethod string
+
+func (e errHttpMethod) Error() string {
+	return fmt.Sprintf("invalid HTTP method: %s", string(e))
+}
+
 func parseTag(str string) (string, string, error) {
 	s := strings.Split(str, " ")
 	if len(s) != 2 {
-		return "", "", errInvalidTagSplit
+		return "", "", errTagFormat
 	}
 
 	meth := s[0]
 	_, ok := methodMap[meth]
 	if !ok {
-		return "", "", fmt.Errorf("invalid method: %s", meth)
+		return "", "", errHttpMethod(meth)
 	}
 
 	return meth, s[1], nil

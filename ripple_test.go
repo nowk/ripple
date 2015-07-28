@@ -119,9 +119,9 @@ func TestPanicOnnewRouteError(t *testing.T) {
 		_ = Group(&CtrlMethodNotFound{}, echoMux)
 	})
 
-	exp := fmt.Errorf("action method not found: Index")
-	if !reflect.DeepEqual(exp, got) {
-		t.Errorf("expected action method not found error, got %s", got.Error())
+	exp := errActionNotFound("Index")
+	if exp != got {
+		t.Errorf("exp %s, got %s", exp, got)
 	}
 }
 
@@ -132,7 +132,7 @@ func TestPanicsIfNotAStruct(t *testing.T) {
 		_ = Group(Namespace("/posts"), echoMux)
 	})
 
-	exp := errControllerInvalidType
+	exp := errNotStruct
 	if !reflect.DeepEqual(exp, got) {
 		t.Errorf("expected %s, got %s", exp.Error(), got.Error())
 	}
@@ -174,9 +174,9 @@ func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
 		_ = Group(&CtrlAssignOnField{}, echoMux)
 	})
 
-	exp := fmt.Errorf("action method not found: Index")
-	if !reflect.DeepEqual(exp, got) {
-		t.Errorf("expected action method not found error, got %s", got.Error())
+	exp := errActionNotFound("Index")
+	if exp != got {
+		t.Errorf("expected %s, got %s", exp, got)
 	}
 }
 

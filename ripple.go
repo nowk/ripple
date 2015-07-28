@@ -15,7 +15,7 @@ type Controller interface {
 	Path() string
 }
 
-var errControllerInvalidType = errors.New("controllers must be struct types")
+var errNotStruct = errors.New("invalid controller type: requires a struct type")
 
 func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
 	vof := reflect.ValueOf(c)
@@ -28,7 +28,7 @@ func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
 
 	var err error
 	if typ.Kind() != reflect.Struct {
-		err = errControllerInvalidType
+		err = errNotStruct
 	}
 
 	return vof, typ, err

@@ -12,6 +12,12 @@ type resource struct {
 	Func reflect.Value // TODO do we have any need to make this echo.Handler?
 }
 
+type errActionNotFound string
+
+func (e errActionNotFound) Error() string {
+	return fmt.Sprintf("action not found: %s", string(e))
+}
+
 func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	var fn reflect.Value
 
@@ -27,7 +33,7 @@ func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 		return fn, nil
 	}
 
-	return fn, fmt.Errorf("action method not found: %s", info.Name)
+	return fn, errActionNotFound(info.Name)
 }
 
 func newResource(
