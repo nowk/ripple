@@ -53,24 +53,33 @@ func newResource(
 	}, nil
 }
 
-// Set sets the resources on the given group
-func (r resource) Set(grp *echo.Group) {
-	var (
-		name string
-		args []reflect.Value
-	)
+func (r resource) isMiddleware() bool {
+	return r.EchoType == middleware
+}
 
-	if r.EchoType == middleware {
-		name = "Use"
-		args = append(args, r.Func)
-	} else {
-		name = methodMap[r.Method]
-		args = append(args, reflect.ValueOf(r.Path), r.Func)
+func (r resource) callName() string {
+	if r.isMiddleware() {
+		return "Use"
 	}
 
-	grpValue := reflect.ValueOf(grp)
-	fn := grpValue.MethodByName(name)
-	fn.Call(args)
+	return methodMap[r.Method]
+}
+
+func (r resource) callArgs() []reflect.Value {
+	if r.isMiddleware() {
+		return []reflect.Value{r.Func}
+	}
+
+	return []reflect.Value{
+		reflect.ValueOf(r.Path),
+		r.Func,
+	}
+}
+
+// Set sets the resources on the given group
+func (r resource) Set(grp *echo.Group) {
+	fn := reflect.ValueOf(grp).MethodByName(r.callName())
+	fn.Call(r.callArgs())
 }
 
 // structField is a wrapper that implements structFielder
