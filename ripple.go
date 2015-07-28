@@ -40,13 +40,13 @@ func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 	var (
 		grp = echoMux.Group(c.Path())
 
-		cValue, cType = reflectCtrl(c)
+		cvof, ctyp = reflectCtrl(c)
 	)
 
 	i := 0
-	n := cType.NumField()
+	n := ctyp.NumField()
 	for ; i < n; i++ {
-		re, err := newResource(cValue, cType.Field(i))
+		re, err := newResource(ctyp.Field(i), cvof)
 		if err != nil {
 			panic(err)
 		}

@@ -30,7 +30,9 @@ func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	return fn, fmt.Errorf("action method not found: %s", info.Name)
 }
 
-func newResource(v reflect.Value, field reflect.StructField) (*resource, error) {
+func newResource(
+	field reflect.StructField, v reflect.Value) (*resource, error) {
+
 	info, err := newFieldInfo(structField{field})
 	if err != nil {
 		return nil, err
