@@ -38,8 +38,7 @@ func reflectCtrl(c Controller) (reflect.Value, reflect.Type) {
 // handler.
 func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 	var (
-		grp      = echoMux.Group(c.Path())
-		grpValue = reflect.ValueOf(grp)
+		grp = echoMux.Group(c.Path())
 
 		cValue, cType = reflectCtrl(c)
 	)
@@ -55,8 +54,7 @@ func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 			continue // if there is no route
 		}
 
-		fn := grpValue.MethodByName(re.CallName())
-		fn.Call(re.CallArgs())
+		re.Set(grp)
 	}
 
 	return grp

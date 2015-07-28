@@ -2,6 +2,7 @@ package ripple
 
 import (
 	"fmt"
+	"github.com/labstack/echo"
 	"reflect"
 )
 
@@ -52,22 +53,24 @@ func newResource(v reflect.Value, field reflect.StructField) (*resource, error) 
 	}, nil
 }
 
-func (r resource) CallName() string {
-	if r.EchoType == middleware {
-		return "Use"
-	}
-
-	return methodMap[r.Method]
-}
-
-func (r resource) CallArgs() []reflect.Value {
-	args := []reflect.Value{r.Func}
+// Set sets the resources on the given group
+func (r resource) Set(grp *echo.Group) {
+	var (
+		name string
+		args []reflect.Value
+	)
 
 	if r.EchoType == middleware {
-		return args
+		name = "Use"
+		args = append(args, r.Func)
+	} else {
+		name = methodMap[r.Method]
+		args = append(args, reflect.ValueOf(r.Path), r.Func)
 	}
 
-	return append([]reflect.Value{reflect.ValueOf(r.Path)}, args...)
+	grpValue := reflect.ValueOf(grp)
+	fn := grpValue.MethodByName(name)
+	fn.Call(args)
 }
 
 // structField is a wrapper that implements structFielder
