@@ -20,7 +20,7 @@ func (f tfield) Name() string {
 	return f.name
 }
 
-func (F tfield) Type() reflect.Type {
+func (f tfield) Type() reflect.Type {
 	return reflect.TypeOf("")
 }
 
