@@ -2,8 +2,9 @@ package ripple
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
 	"reflect"
+
+	"github.com/labstack/echo"
 )
 
 type resource struct {
