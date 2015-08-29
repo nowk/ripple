@@ -125,7 +125,7 @@ __Defining middlewares:__
 Middlewares are defined very much like handlers, with the exception of the 
 ripple tag format which must be defined as such:
 
-    Log echo.Middleware `ripple:"*"`
+    Log echo.Middleware `ripple:",middleware"`
 
 And like their handler counter parts are also looked up in the same 
 `<Field Name>Func` manner.
