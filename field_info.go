@@ -55,29 +55,6 @@ var methodMap = map[string]string{
 	// TODO add WebSocket?
 }
 
-type errHttpMethod string
-
-func (e errHttpMethod) Error() string {
-	return fmt.Sprintf("invalid HTTP method: %s", string(e))
-}
-
-func parseTag(str string) (string, string, error) {
-	split := strings.Split(str, " ")
-	if len(split) != 2 {
-		return "", "", errTagFormat
-	}
-
-	meth := split[0]
-	path := split[1]
-
-	_, ok := methodMap[meth]
-	if !ok {
-		return "", "", errHttpMethod(meth)
-	}
-
-	return meth, path, nil
-}
-
 func newFieldInfo(f structFielder) (*fieldInfo, error) {
 	tag := f.Tag()
 	if tag == "" {
@@ -114,4 +91,27 @@ func newFieldInfo(f structFielder) (*fieldInfo, error) {
 
 func (f fieldInfo) MethodName() string {
 	return fmt.Sprintf("%sFunc", f.Name)
+}
+
+func parseTag(str string) (string, string, error) {
+	split := strings.Split(str, " ")
+	if len(split) != 2 {
+		return "", "", errTagFormat
+	}
+
+	meth := split[0]
+	path := split[1]
+
+	_, ok := methodMap[meth]
+	if !ok {
+		return "", "", errHttpMethod(meth)
+	}
+
+	return meth, path, nil
+}
+
+type errHttpMethod string
+
+func (e errHttpMethod) Error() string {
+	return fmt.Sprintf("invalid HTTP method: %s", string(e))
 }

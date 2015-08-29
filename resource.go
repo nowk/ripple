@@ -15,12 +15,6 @@ type resource struct {
 	Func reflect.Value
 }
 
-type errActionNotFound string
-
-func (e errActionNotFound) Error() string {
-	return fmt.Sprintf("action not found: %s", string(e))
-}
-
 // getResourceFunc returns the associated <name>Func method for a defined ripple
 // field or the actual field value if the <name>Func association is not found.
 func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
@@ -41,7 +35,11 @@ func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
 	return fn, errActionNotFound(info.Name)
 }
 
-var errTypeMismatch = errors.New("field and method types do not match")
+type errActionNotFound string
+
+func (e errActionNotFound) Error() string {
+	return fmt.Sprintf("action not found: %s", string(e))
+}
 
 func newResource(
 	field reflect.StructField, v reflect.Value) (*resource, error) {
@@ -66,6 +64,8 @@ func newResource(
 	}, nil
 }
 
+var errTypeMismatch = errors.New("field and method types do not match")
+
 func (r resource) isMiddleware() bool {
 	return r.EchoType == middleware
 }
@@ -78,6 +78,14 @@ func (r resource) callName() string {
 	return methodMap[r.Method]
 }
 
+// Set sets the resources on the given group
+func (r resource) Set(grp *echo.Group) {
+	reflect.
+		ValueOf(grp).
+		MethodByName(r.callName()).
+		Call(r.callArgs())
+}
+
 func (r resource) callArgs() []reflect.Value {
 	if r.isMiddleware() {
 		return []reflect.Value{r.Func}
@@ -87,12 +95,6 @@ func (r resource) callArgs() []reflect.Value {
 		reflect.ValueOf(r.Path),
 		r.Func,
 	}
-}
-
-// Set sets the resources on the given group
-func (r resource) Set(grp *echo.Group) {
-	fn := reflect.ValueOf(grp).MethodByName(r.callName())
-	fn.Call(r.callArgs())
 }
 
 // structField is a wrapper that implements structFielder

@@ -16,25 +16,6 @@ type Controller interface {
 	Path() string
 }
 
-var errNotStruct = errors.New("invalid controller type: requires a struct type")
-
-func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
-	vof := reflect.ValueOf(c)
-	typ := vof.Type()
-
-	if typ.Kind() == reflect.Ptr {
-		vof = vof.Elem()
-		typ = vof.Type()
-	}
-
-	var err error
-	if typ.Kind() != reflect.Struct {
-		err = errNotStruct
-	}
-
-	return vof, typ, err
-}
-
 // Group applies the Controller to the echo via a new Group using the
 // Controller's ripple tags as a manifest to properly associate methods/path and
 // handler.
@@ -61,4 +42,23 @@ func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 	}
 
 	return grp
+}
+
+var errNotStruct = errors.New("invalid controller type: requires a struct type")
+
+func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
+	vof := reflect.ValueOf(c)
+	typ := vof.Type()
+
+	if typ.Kind() == reflect.Ptr {
+		vof = vof.Elem()
+		typ = vof.Type()
+	}
+
+	var err error
+	if typ.Kind() != reflect.Struct {
+		err = errNotStruct
+	}
+
+	return vof, typ, err
 }
