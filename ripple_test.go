@@ -175,7 +175,7 @@ func TestFieldTypeDoesNotMatchMethodType(t *testing.T) {
 type CtrlWithMiddleware struct {
 	Namespace
 
-	Log   echo.Middleware  `ripple:"*"`
+	Log   echo.Middleware  `ripple:",middleware"`
 	Index http.HandlerFunc `ripple:"GET /"`
 }
 

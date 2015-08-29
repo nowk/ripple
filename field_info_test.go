@@ -41,10 +41,10 @@ func Test_newFieldInfoParsesTagAndReturnsAfieldInfo(t *testing.T) {
 		meth, path, name string
 	}{
 		{handler, "GET", "/", "Index"},
-		{middleware, "*", "", "Log"},
+		{middleware, ",middleware", "", "Log"},
 	} {
 		var tag string
-		if v.meth == "*" {
+		if v.meth == ",middleware" {
 			tag = v.meth
 
 			v.meth = ""

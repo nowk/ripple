@@ -91,7 +91,7 @@ func newFieldInfo(f structFielder) (*fieldInfo, error) {
 		meth, path string
 	)
 
-	if tag != "*" {
+	if tag != ",middleware" {
 		meth, path, err = parseTag(tag)
 		if err != nil {
 			return nil, err
