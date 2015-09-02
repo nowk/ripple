@@ -15,56 +15,29 @@ type resource struct {
 	Func reflect.Value
 }
 
-// getResourceFunc returns the associated <name>Func method for a defined ripple
-// field or the actual field value if the <name>Func association is not found.
-func getResourceFunc(info *fieldInfo, v reflect.Value) (reflect.Value, error) {
-	var fn reflect.Value
-
-	// first search methods
-	fn = v.MethodByName(info.MethodName())
-	if fn.IsValid() {
-		return fn, nil
-	}
-
-	// then search fields
-	fn = v.FieldByName(info.Name)
-	if fn.IsValid() && !reflect.ValueOf(fn.Interface()).IsNil() {
-		return fn, nil
-	}
-
-	return fn, errActionNotFound(info.Name)
-}
-
-type errActionNotFound string
-
-func (e errActionNotFound) Error() string {
-	return fmt.Sprintf("action not found: %s", string(e))
-}
-
-func newResource(
-	field reflect.StructField, v reflect.Value) (*resource, error) {
-
-	info, err := newFieldInfo(structField{field})
-	if err != nil || info == nil {
-		return nil, err
-	}
-
-	fn, err := getResourceFunc(info, v)
+func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
+	fieldinf, err := newFieldInfo(structField{f})
 	if err != nil {
 		return nil, err
 	}
-	if !fn.Type().ConvertibleTo(info.Type) {
+	if fieldinf == nil {
+		return nil, nil
+	}
+
+	fn, err := getResourceFunc(fieldinf, v)
+	if err != nil {
+		return nil, err
+	}
+	if !fn.Type().ConvertibleTo(fieldinf.Type) {
 		return nil, errTypeMismatch
 	}
 
 	return &resource{
-		fieldInfo: info,
+		fieldInfo: fieldinf,
 
 		Func: fn,
 	}, nil
 }
-
-var errTypeMismatch = errors.New("field and method types do not match")
 
 func (r resource) isMiddleware() bool {
 	return r.EchoType == middleware
@@ -112,4 +85,34 @@ func (f structField) Name() string {
 
 func (f structField) Type() reflect.Type {
 	return f.field.Type
+}
+
+var errTypeMismatch = errors.New("field and method types do not match")
+
+// getResourceFunc returns the associated <name>Func method for a defined ripple
+// field or the actual field value if the <name>Func association is not found.
+func getResourceFunc(
+	fieldinf *fieldInfo, v reflect.Value) (reflect.Value, error) {
+
+	var fn reflect.Value
+
+	// first search methods
+	fn = v.MethodByName(fieldinf.MethodName())
+	if fn.IsValid() {
+		return fn, nil
+	}
+
+	// then search fields
+	fn = v.FieldByName(fieldinf.Name)
+	if fn.IsValid() && !reflect.ValueOf(fn.Interface()).IsNil() {
+		return fn, nil
+	}
+
+	return fn, errActionNotFound(fieldinf.Name)
+}
+
+type errActionNotFound string
+
+func (e errActionNotFound) Error() string {
+	return fmt.Sprintf("action not found: %s", string(e))
 }

@@ -44,8 +44,6 @@ func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 	return grp
 }
 
-var errNotStruct = errors.New("invalid controller type: requires a struct type")
-
 func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
 	vof := reflect.ValueOf(c)
 	typ := vof.Type()
@@ -62,3 +60,5 @@ func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
 
 	return vof, typ, err
 }
+
+var errNotStruct = errors.New("invalid controller type: requires a struct type")
