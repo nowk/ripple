@@ -18,6 +18,13 @@ const (
 	handler
 )
 
+// structFielder is the basic interface we need for a struct field
+type structFielder interface {
+	Tag() string
+	Name() string
+	Type() reflect.Type
+}
+
 // fieldInfo is the basic meta data parsed from a struct field. This does not
 // include the actual field value or the <name>Func method it represents.
 type fieldInfo struct {
@@ -31,13 +38,30 @@ type fieldInfo struct {
 	EchoType echoType
 }
 
-type structFielder interface {
-	Tag() string
-	Name() string
-	Type() reflect.Type
+func newFieldInfo(f structFielder) (*fieldInfo, error) {
+	taginf, err := parseTag(f.Tag())
+	if err != nil {
+		return nil, err
+	}
+	if taginf == nil {
+		return nil, nil
+	}
+
+	return &fieldInfo{
+		Method: taginf.meth,
+		Path:   strings.TrimRight(taginf.path, "/"),
+		Name:   f.Name(),
+		Type:   f.Type(),
+
+		EchoType: taginf.EchoType,
+	}, nil
 }
 
-var errTagFormat = errors.New("invalid tag format")
+// MethodName returns the associated method name for ripple field.
+// eg. Index -> IndexFunc
+func (f fieldInfo) MethodName() string {
+	return fmt.Sprintf("%sFunc", f.Name)
+}
 
 // methodMap maps all echo methods that match the func(string, echo.Handler)
 // signature used to add method routes
@@ -55,60 +79,38 @@ var methodMap = map[string]string{
 	// TODO add WebSocket?
 }
 
-func newFieldInfo(f structFielder) (*fieldInfo, error) {
-	tag := f.Tag()
+// tagInfo represents the decoded tag string
+type tagInfo struct {
+	meth, path string
+
+	EchoType echoType
+}
+
+func parseTag(tag string) (*tagInfo, error) {
 	if tag == "" {
 		return nil, nil
 	}
-
-	var (
-		err error
-
-		ecType     echoType
-		meth, path string
-	)
-
-	if tag != ",middleware" {
-		meth, path, err = parseTag(tag)
-		if err != nil {
-			return nil, err
-		}
-
-		ecType = handler
-	} else {
-		ecType = middleware
+	if tag == ",middleware" {
+		return &tagInfo{EchoType: middleware}, nil
 	}
 
-	return &fieldInfo{
-		Method: meth,
-		Path:   strings.TrimRight(path, "/"),
-		Name:   f.Name(),
-		Type:   f.Type(),
-
-		EchoType: ecType,
-	}, nil
-}
-
-func (f fieldInfo) MethodName() string {
-	return fmt.Sprintf("%sFunc", f.Name)
-}
-
-func parseTag(str string) (string, string, error) {
-	split := strings.Split(str, " ")
-	if len(split) != 2 {
-		return "", "", errTagFormat
+	arr := strings.Split(tag, " ")
+	if len(arr) != 2 {
+		return nil, errTagFormat
 	}
 
-	meth := split[0]
-	path := split[1]
+	meth := arr[0]
+	path := arr[1]
 
 	_, ok := methodMap[meth]
 	if !ok {
-		return "", "", errHttpMethod(meth)
+		return nil, errHttpMethod(meth)
 	}
 
-	return meth, path, nil
+	return &tagInfo{meth, path, handler}, nil
 }
+
+var errTagFormat = errors.New("invalid tag format")
 
 type errHttpMethod string
 

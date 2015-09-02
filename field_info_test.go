@@ -51,22 +51,23 @@ func Test_newFieldInfoParsesTagAndReturnsAfieldInfo(t *testing.T) {
 		} else {
 			tag = fmt.Sprintf("%s %s", v.meth, v.path)
 		}
-
-		tf := &tfield{
+		var field = &tfield{
 			tag:  tag,
 			name: v.name,
 		}
-		info, err := newFieldInfo(tf)
-		if err != nil {
-			t.Fatal(err)
+
+		var exp = &fieldInfo{
+			Method: v.meth,
+			Path:   strings.TrimRight(v.path, "/"),
+			Name:   v.name,
+			Type:   reflect.TypeOf(""),
+
+			EchoType: v.ectype,
 		}
 
-		exp := &fieldInfo{
-			EchoType: v.ectype,
-			Path:     strings.TrimRight(v.path, "/"),
-			Method:   v.meth,
-			Name:     v.name,
-			Type:     reflect.TypeOf(""),
+		info, err := newFieldInfo(field)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
 		}
 
 		if !reflect.DeepEqual(exp, info) {
