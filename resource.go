@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/labstack/echo"
+	"gopkg.in/labstack/echo.v1"
 )
 
 // resource represents the handler/middleware to be mounted onto an Echo Group

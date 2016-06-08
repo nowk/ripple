@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/labstack/echo"
+	"gopkg.in/labstack/echo.v1"
 )
 
 // fieldTagKey is the field tag key for ripple

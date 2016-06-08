@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo"
+	"gopkg.in/labstack/echo.v1"
 )
 
 func catch(fn func()) error {
