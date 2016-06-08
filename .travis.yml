@@ -1,6 +1,6 @@
 language: go
 install:
-    - go get github.com/labstack/echo
+    - go get gopkg.in/labstack/echo.v1
 go:
     # - "1.0" # unsupported by echo
     # - "1.1"
