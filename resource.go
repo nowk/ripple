@@ -12,7 +12,8 @@ import (
 type resource struct {
 	*fieldInfo
 
-	Func reflect.Value
+	ControllerName string
+	Func           reflect.Value
 }
 
 func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
@@ -35,7 +36,8 @@ func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
 	return &resource{
 		fieldInfo: fieldinf,
 
-		Func: fn,
+		ControllerName: v.Type().Name(),
+		Func:           fn,
 	}, nil
 }
 
@@ -64,9 +66,28 @@ func (r resource) callArgs() []reflect.Value {
 		return []reflect.Value{r.Func}
 	}
 
+	handlerFunc, ok := r.Func.Interface().(func(*echo.Context) error)
+	if !ok {
+		return []reflect.Value{
+			reflect.ValueOf(r.Path),
+			r.Func,
+		}
+	}
+
+	var (
+		controller_name = r.ControllerName
+		action_name     = r.Name
+	)
+	fn := echo.HandlerFunc(func(ctx *echo.Context) error {
+		ctx.Set("__controller_name", controller_name)
+		ctx.Set("__action_name", action_name)
+
+		return handlerFunc(ctx)
+	})
+
 	return []reflect.Value{
 		reflect.ValueOf(r.Path),
-		r.Func,
+		reflect.ValueOf(fn),
 	}
 }
 

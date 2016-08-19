@@ -206,3 +206,51 @@ func TestMiddlewareSupport(t *testing.T) {
 		t.Errorf("expected middleware output, got %s", got)
 	}
 }
+
+type CtrlMeta struct {
+	Namespace
+
+	Index echo.HandlerFunc `ripple:"GET /"`
+}
+
+func (c CtrlMeta) IndexFunc(ctx *echo.Context) error {
+	var (
+		controller_name = ctx.Get("__controller_name")
+		action_name     = ctx.Get("__action_name")
+	)
+
+	return ctx.HTML(200, fmt.Sprintf("%s:%s", controller_name, action_name))
+}
+
+func TestRouteMetaDataIsContextedOnRequest(t *testing.T) {
+	ech := echo.New()
+	Group(&CtrlMeta{}, ech)
+
+	var cases = []struct {
+		method string
+		path   string
+
+		controller_name string
+		action_name     string
+	}{
+		{"GET", "/", "CtrlMeta", "Index"},
+	}
+
+	for _, v := range cases {
+		req, err := http.NewRequest(v.method, v.path, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		w := httptest.NewRecorder()
+
+		ech.ServeHTTP(w, req)
+
+		var (
+			exp = fmt.Sprintf("%s:%s", v.controller_name, v.action_name)
+			got = w.Body.String()
+		)
+		if exp != got {
+			t.Errorf("expected %s, got %s", exp, got)
+		}
+	}
+}
