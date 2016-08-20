@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"gopkg.in/labstack/echo.v1"
@@ -108,8 +109,12 @@ func TestPanicOnnewRouteError(t *testing.T) {
 		Group(&CtrlMethodNotFound{}, echo.New())
 	})
 
-	if errActionNotFound("Index") != err {
-		t.Errorf("expected action not found error, got %s", err)
+	var (
+		exp = &Error{"Index", "action not found"}
+		got = err
+	)
+	if !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected %v, got %v", exp, got)
 	}
 }
 
@@ -148,8 +153,12 @@ func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
 		Group(&CtrlAssignOnField{}, echo.New())
 	})
 
-	if errActionNotFound("Index") != err {
-		t.Errorf("expected action not found error, got %s", err)
+	var (
+		exp = &Error{"Index", "action not found"}
+		got = err
+	)
+	if !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected %v, got %v", exp, got)
 	}
 }
 
@@ -168,8 +177,12 @@ func TestFieldTypeDoesNotMatchMethodType(t *testing.T) {
 		Group(&CtrlMismatch{}, echo.New())
 	})
 
-	if errTypeMismatch != err {
-		t.Errorf("expected type mismatch error, got %s", err)
+	var (
+		exp = &Error{"Index", "type mismatch"}
+		got = err
+	)
+	if !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected %v, got %v", exp, got)
 	}
 }
 

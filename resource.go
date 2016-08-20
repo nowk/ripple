@@ -1,7 +1,6 @@
 package ripple
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -31,24 +30,55 @@ func newResource(f reflect.StructField, ctrl reflect.Value) (*resource, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := checkFunc(fn, fi); err != nil {
-		return nil, err
-	}
-
-	return &resource{
+	res := &resource{
 		Fieldinfo: fi,
 
 		ControllerName: ctrl.Type().Name(),
 		Func:           fn,
-	}, nil
-}
-
-func checkFunc(fn reflect.Value, fi *fieldinfo.Fieldinfo) error {
-	if !fn.Type().ConvertibleTo(fi.Type) {
-		return errTypeMismatch
 	}
 
-	return nil
+	return res, nil
+}
+
+// getFunc returns the associated <name>Func method for a defined ripple
+// field or the actual field value if the <name>Func association is not found.
+func getFunc(fi *fieldinfo.Fieldinfo, v reflect.Value) (reflect.Value, error) {
+	// first search methods
+	if fn := v.MethodByName(fi.MethodName()); fn.IsValid() {
+		return checkFunc(fn, fi)
+	}
+
+	// then search fields
+	if fn := v.FieldByName(fi.Name); fn.IsValid() && !fn.IsNil() {
+		return checkFunc(fn, fi)
+	}
+
+	return reflect.Value{}, &Error{fi.Name, "action not found"}
+}
+
+// checkFunc checks to ensure the func found is convertable to the type defined
+// in the field
+func checkFunc(
+	fn reflect.Value, fi *fieldinfo.Fieldinfo) (reflect.Value, error) {
+
+	if !fn.Type().ConvertibleTo(fi.Type) {
+		return fn, &Error{fi.Name, "type mismatch"}
+	}
+
+	return fn, nil
+}
+
+type Error struct {
+	Desc string
+	Msg  string
+}
+
+func (e *Error) Error() string {
+	if e.Desc != "" {
+		return fmt.Sprintf("%s: %s", e.Desc, e.Msg)
+	}
+
+	return e.Msg
 }
 
 func (r resource) callName() string {
@@ -95,32 +125,4 @@ func (r resource) callArgs() []reflect.Value {
 		reflect.ValueOf(r.Path),
 		reflect.ValueOf(fn),
 	}
-}
-
-var errTypeMismatch = errors.New("field and method types do not match")
-
-// getFunc returns the associated <name>Func method for a defined ripple
-// field or the actual field value if the <name>Func association is not found.
-func getFunc(fi *fieldinfo.Fieldinfo, v reflect.Value) (reflect.Value, error) {
-	var fn reflect.Value
-
-	// first search methods
-	fn = v.MethodByName(fi.MethodName())
-	if fn.IsValid() {
-		return fn, nil
-	}
-
-	// then search fields
-	fn = v.FieldByName(fi.Name)
-	if fn.IsValid() && !reflect.ValueOf(fn.Interface()).IsNil() {
-		return fn, nil
-	}
-
-	return fn, errActionNotFound(fi.Name)
-}
-
-type errActionNotFound string
-
-func (e errActionNotFound) Error() string {
-	return fmt.Sprintf("action not found: %s", string(e))
 }
