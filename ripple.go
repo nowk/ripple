@@ -13,10 +13,10 @@ type Controller interface {
 	Path() string
 }
 
-// Group applies the Controller to the echo via a new Group using the
+// Mount applies the Controller to the echo via a new Group using the
 // Controller's ripple tags as a manifest to properly associate methods/path and
 // handler.
-func Group(c Controller, echoMux *echo.Echo) *echo.Group {
+func Mount(c Controller, echoMux *echo.Echo) *echo.Group {
 	cvof, ctyp, err := reflectCtrl(c)
 	if err != nil {
 		panic(err)

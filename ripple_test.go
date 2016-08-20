@@ -50,7 +50,7 @@ func (CtrlBasic) DelFunc(c *echo.Context) error {
 
 func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 	echoMux := echo.New()
-	Group(&CtrlBasic{Namespace: ""}, echoMux)
+	Mount(&CtrlBasic{Namespace: ""}, echoMux)
 
 	for _, v := range []struct {
 		meth, Namespace, extra string
@@ -91,7 +91,7 @@ func (c CtrlInternalField) IndexFunc(w http.ResponseWriter, req *http.Request) {
 
 func TestAccessingInternalFields(t *testing.T) {
 	w := send("GET", "/", func(echoMux *echo.Echo) {
-		Group(&CtrlInternalField{AccessKey: "myaccesskey"}, echoMux)
+		Mount(&CtrlInternalField{AccessKey: "myaccesskey"}, echoMux)
 	}, t)
 
 	if got := w.Body.String(); "AccessKey is myaccesskey" != got {
@@ -107,7 +107,7 @@ type CtrlMethodNotFound struct {
 
 func TestPanicOnnewRouteError(t *testing.T) {
 	err := catch(func() {
-		Group(&CtrlMethodNotFound{}, echo.New())
+		Mount(&CtrlMethodNotFound{}, echo.New())
 	})
 
 	var (
@@ -121,7 +121,7 @@ func TestPanicOnnewRouteError(t *testing.T) {
 
 func TestPanicsIfNotAStruct(t *testing.T) {
 	err := catch(func() {
-		Group(Namespace("/posts"), echo.New())
+		Mount(Namespace("/posts"), echo.New())
 	})
 
 	var (
@@ -141,7 +141,7 @@ type CtrlAssignOnField struct {
 
 func TestUseAssignedHandlerOnField(t *testing.T) {
 	w := send("GET", "/", func(echoMux *echo.Echo) {
-		Group(&CtrlAssignOnField{
+		Mount(&CtrlAssignOnField{
 			Index: func(w http.ResponseWriter, req *http.Request) {
 				fmt.Fprintf(w, "[%s] %s #Index", req.Method, req.URL.Path)
 			},
@@ -155,7 +155,7 @@ func TestUseAssignedHandlerOnField(t *testing.T) {
 
 func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
 	err := catch(func() {
-		Group(&CtrlAssignOnField{}, echo.New())
+		Mount(&CtrlAssignOnField{}, echo.New())
 	})
 
 	var (
@@ -179,7 +179,7 @@ func (CtrlMismatch) IndexFunc(_ http.ResponseWriter, _ *http.Request) {
 
 func TestFieldTypeDoesNotMatchMethodType(t *testing.T) {
 	err := catch(func() {
-		Group(&CtrlMismatch{}, echo.New())
+		Mount(&CtrlMismatch{}, echo.New())
 	})
 
 	var (
@@ -217,7 +217,7 @@ func (CtrlWithMiddleware) IndexFunc(w http.ResponseWriter, req *http.Request) {
 
 func TestMiddlewareSupport(t *testing.T) {
 	w := send("GET", "/", func(echoMux *echo.Echo) {
-		Group(&CtrlWithMiddleware{}, echoMux)
+		Mount(&CtrlWithMiddleware{}, echoMux)
 	}, t)
 
 	if got := w.Body.String(); "log in[GET] / #Indexlog out" != got {
@@ -242,7 +242,7 @@ func (c CtrlMeta) IndexFunc(ctx *echo.Context) error {
 
 func TestRouteMetaDataIsContextedOnRequest(t *testing.T) {
 	ech := echo.New()
-	Group(&CtrlMeta{}, ech)
+	Mount(&CtrlMeta{}, ech)
 
 	var cases = []struct {
 		method string
