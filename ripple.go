@@ -1,9 +1,9 @@
 package ripple
 
 import (
-	"errors"
 	"reflect"
 
+	. "github.com/nowk/ripple/errors"
 	"gopkg.in/labstack/echo.v1"
 )
 
@@ -55,10 +55,8 @@ func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
 
 	var err error
 	if typ.Kind() != reflect.Struct {
-		err = errNotStruct
+		err = &Error{typ.Name(), "not a struct"}
 	}
 
 	return vof, typ, err
 }
-
-var errNotStruct = errors.New("invalid controller type: requires a struct type")

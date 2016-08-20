@@ -1,9 +1,9 @@
 package ripple
 
 import (
-	"fmt"
 	"reflect"
 
+	. "github.com/nowk/ripple/errors"
 	"github.com/nowk/ripple/fieldinfo"
 	"github.com/nowk/ripple/methods"
 	"gopkg.in/labstack/echo.v1"
@@ -66,19 +66,6 @@ func checkFunc(
 	}
 
 	return fn, nil
-}
-
-type Error struct {
-	Desc string
-	Msg  string
-}
-
-func (e *Error) Error() string {
-	if e.Desc != "" {
-		return fmt.Sprintf("%s: %s", e.Desc, e.Msg)
-	}
-
-	return e.Msg
 }
 
 func (r resource) callName() string {

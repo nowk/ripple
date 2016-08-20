@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	. "github.com/nowk/ripple/errors"
 	"gopkg.in/labstack/echo.v1"
 )
 
@@ -123,8 +124,12 @@ func TestPanicsIfNotAStruct(t *testing.T) {
 		Group(Namespace("/posts"), echo.New())
 	})
 
-	if errNotStruct != err {
-		t.Errorf("expected not struct error, got %s", err)
+	var (
+		exp = &Error{"Namespace", "not a struct"}
+		got = err
+	)
+	if !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected %v, got %v", exp, got)
 	}
 }
 

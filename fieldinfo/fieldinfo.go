@@ -2,9 +2,11 @@ package fieldinfo
 
 import (
 	"fmt"
-	"github.com/nowk/ripple/methods"
 	"reflect"
 	"strings"
+
+	. "github.com/nowk/ripple/errors"
+	"github.com/nowk/ripple/methods"
 )
 
 const RippleTagKey string = "ripple"
@@ -74,14 +76,14 @@ func parseTag(tag string) (*taginfo, error) {
 
 	split := strings.Split(tag, " ") // eg. GET /path
 	if len(split) != 2 {
-		return nil, fmt.Errorf("`%s`: invalid tag format", tag)
+		return nil, &Error{tag, "invalid tag format"}
 	}
 	method, path := split[0], split[1]
 
 	// check that the method is a valid HTTP method supported by echo
 	_, ok := methods.Map[method]
 	if !ok {
-		return nil, fmt.Errorf("%s: unsupported HTTP method", method)
+		return nil, &Error{method, "unsupported HTTP method"}
 	}
 
 	ti := &taginfo{
