@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const RippleTagKey string = "ripple"
+
 type echotype int
 
 const (
@@ -23,7 +25,7 @@ type Fieldinfo struct {
 }
 
 func New(f reflect.StructField) (*Fieldinfo, error) {
-	ti, err := parseTag(f.Tag.Get("ripple"))
+	ti, err := parseTag(f.Tag.Get(RippleTagKey))
 	if err != nil {
 		return nil, err
 	}
