@@ -70,14 +70,14 @@ func parseTag(tag string) (*taginfo, error) {
 
 	split := strings.Split(tag, " ") // eg. GET /path
 	if len(split) != 2 {
-		return nil, &RippleError{fmt.Sprintf("`%s`: invalid tag format", tag)}
+		return nil, fmt.Errorf("`%s`: invalid tag format", tag)
 	}
 	method, path := split[0], split[1]
 
 	// check that the method is a valid HTTP method supported by echo
 	_, ok := methods.Map[method]
 	if !ok {
-		return nil, &RippleError{fmt.Sprintf("%s: unsupported HTTP method", method)}
+		return nil, fmt.Errorf("%s: unsupported HTTP method", method)
 	}
 
 	ti := &taginfo{
@@ -88,12 +88,4 @@ func parseTag(tag string) (*taginfo, error) {
 	}
 
 	return ti, nil
-}
-
-type RippleError struct {
-	Message string
-}
-
-func (r *RippleError) Error() string {
-	return r.Message
 }
