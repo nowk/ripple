@@ -94,23 +94,6 @@ func (r resource) callArgs() []reflect.Value {
 	}
 }
 
-// structField is a wrapper that implements structFielder
-type structField struct {
-	field reflect.StructField
-}
-
-func (f structField) Tag() string {
-	return f.field.Tag.Get(fieldTagKey)
-}
-
-func (f structField) Name() string {
-	return f.field.Name
-}
-
-func (f structField) Type() reflect.Type {
-	return f.field.Type
-}
-
 var errTypeMismatch = errors.New("field and method types do not match")
 
 // getResourceFunc returns the associated <name>Func method for a defined ripple

@@ -43,7 +43,7 @@ func New(f reflect.StructField) (*Fieldinfo, error) {
 	return fi, nil
 }
 
-// MethodName returns the associated method name for ripple field.
+// MethodName returns the associated method func name for ripple field.
 // eg. Index -> IndexFunc
 func (f *Fieldinfo) MethodName() string {
 	return fmt.Sprintf("%sFunc", f.Name)
