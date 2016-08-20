@@ -70,13 +70,15 @@ func checkFunc(
 
 // Apply sets the resources on the given group
 func (r *resource) Apply(grp *echo.Group) {
-	reflect.
-		ValueOf(grp).
-		MethodByName(r.callName()).
-		Call(r.callArgs())
+	var (
+		vof = reflect.ValueOf(grp)
+		fn  = vof.MethodByName(r.methodName())
+	)
+
+	fn.Call(r.args())
 }
 
-func (r *resource) callName() string {
+func (r *resource) methodName() string {
 	if r.IsMiddleware() {
 		return "Use"
 	}
@@ -84,7 +86,7 @@ func (r *resource) callName() string {
 	return methods.Map[r.Method]
 }
 
-func (r *resource) callArgs() []reflect.Value {
+func (r *resource) args() []reflect.Value {
 	if r.IsMiddleware() {
 		return []reflect.Value{r.Func}
 	}
