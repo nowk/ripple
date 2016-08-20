@@ -44,12 +44,8 @@ func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
 	}, nil
 }
 
-func (r resource) isMiddleware() bool {
-	return r.Echotype == fieldinfo.Middleware
-}
-
 func (r resource) callName() string {
-	if r.isMiddleware() {
+	if r.IsMiddleware() {
 		return "Use"
 	}
 
@@ -65,7 +61,7 @@ func (r resource) Set(grp *echo.Group) {
 }
 
 func (r resource) callArgs() []reflect.Value {
-	if r.isMiddleware() {
+	if r.IsMiddleware() {
 		return []reflect.Value{r.Func}
 	}
 

@@ -49,6 +49,10 @@ func (f *Fieldinfo) MethodName() string {
 	return fmt.Sprintf("%sFunc", f.Name)
 }
 
+func (f *Fieldinfo) IsMiddleware() bool {
+	return f.Echotype == Middleware
+}
+
 // taginfo is a structured representation of the the parsed field tag
 type taginfo struct {
 	Method   string
