@@ -1,4 +1,4 @@
-package ripple
+package resource
 
 import (
 	"reflect"
@@ -17,7 +17,7 @@ type resource struct {
 	Func           reflect.Value
 }
 
-func newResource(f reflect.StructField, ctrl reflect.Value) (*resource, error) {
+func New(f reflect.StructField, ctrl reflect.Value) (*resource, error) {
 	fi, err := fieldinfo.New(f)
 	if err != nil {
 		return nil, err

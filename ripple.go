@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	. "github.com/nowk/ripple/errors"
+	"github.com/nowk/ripple/resource"
 	"gopkg.in/labstack/echo.v1"
 )
 
@@ -27,7 +28,7 @@ func Mount(c Controller, echoMux *echo.Echo) *echo.Group {
 	i := 0
 	n := ctyp.NumField()
 	for ; i < n; i++ {
-		res, err := newResource(ctyp.Field(i), cvof)
+		res, err := resource.New(ctyp.Field(i), cvof)
 		if err != nil {
 			panic(err)
 		}
