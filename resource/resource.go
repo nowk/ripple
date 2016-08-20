@@ -48,7 +48,7 @@ func getFunc(fi *fieldinfo.Fieldinfo, v reflect.Value) (reflect.Value, error) {
 		return checkFunc(fn, fi)
 	}
 
-	// then search fields
+	// then search fields to see if field was defined, eg Index: func(...)
 	if fn := v.FieldByName(fi.Name); fn.IsValid() && !fn.IsNil() {
 		return checkFunc(fn, fi)
 	}
@@ -70,14 +70,12 @@ func checkFunc(
 
 // Apply sets the resources on the given group
 func (r *resource) Apply(grp *echo.Group) {
-	var (
-		vof = reflect.ValueOf(grp)
-		fn  = vof.MethodByName(r.methodName())
-	)
-
+	vofGrp := reflect.ValueOf(grp)
+	fn := vofGrp.MethodByName(r.methodName())
 	fn.Call(r.args())
 }
 
+// methodName returns the echo method name to call to bind the current resource
 func (r *resource) methodName() string {
 	if r.IsMiddleware() {
 		return "Use"
@@ -91,27 +89,29 @@ func (r *resource) args() []reflect.Value {
 		return []reflect.Value{r.Func}
 	}
 
-	handlerFunc, ok := r.Func.Interface().(func(*echo.Context) error)
-	if !ok {
-		return []reflect.Value{
-			reflect.ValueOf(r.Path),
-			r.Func,
-		}
+	vofPath := reflect.ValueOf(r.Path)
+	vofFunc := r.Func
+	// type assertion to get the actual func, so we can call it directly later
+	// on
+	handler, ok := r.Func.Interface().(func(*echo.Context) error)
+	if ok {
+		vofFunc = reflect.ValueOf(actionFunc(handler, r.ControllerName, r.Name))
 	}
-
-	var (
-		controller_name = r.ControllerName
-		action_name     = r.Name
-	)
-	fn := echo.HandlerFunc(func(ctx *echo.Context) error {
-		ctx.Set("__controller_name", controller_name)
-		ctx.Set("__action_name", action_name)
-
-		return handlerFunc(ctx)
-	})
 
 	return []reflect.Value{
-		reflect.ValueOf(r.Path),
-		reflect.ValueOf(fn),
+		vofPath,
+		vofFunc,
 	}
+}
+
+func actionFunc(
+	handler echo.HandlerFunc, controllerName, actionName string) echo.HandlerFunc {
+
+	return echo.HandlerFunc(func(ctx *echo.Context) error {
+		ctx.Set("__controller_name", controllerName)
+		ctx.Set("__action_name", actionName)
+
+		return handler(ctx)
+	})
+
 }
