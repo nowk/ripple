@@ -5,19 +5,22 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/nowk/ripple/fieldinfo"
+	"github.com/nowk/ripple/methods"
 	"gopkg.in/labstack/echo.v1"
 )
 
 // resource represents the handler/middleware to be mounted onto an Echo Group
 type resource struct {
-	*fieldInfo
+	*fieldinfo.Fieldinfo
 
 	ControllerName string
 	Func           reflect.Value
 }
 
 func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
-	fieldinf, err := newFieldInfo(structField{f})
+
+	fieldinf, err := fieldinfo.New(f)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +37,7 @@ func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
 	}
 
 	return &resource{
-		fieldInfo: fieldinf,
+		Fieldinfo: fieldinf,
 
 		ControllerName: v.Type().Name(),
 		Func:           fn,
@@ -42,7 +45,7 @@ func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
 }
 
 func (r resource) isMiddleware() bool {
-	return r.EchoType == middleware
+	return r.Echotype == fieldinfo.Middleware
 }
 
 func (r resource) callName() string {
@@ -50,7 +53,7 @@ func (r resource) callName() string {
 		return "Use"
 	}
 
-	return methodMap[r.Method]
+	return methods.Map[r.Method]
 }
 
 // Set sets the resources on the given group
@@ -113,7 +116,7 @@ var errTypeMismatch = errors.New("field and method types do not match")
 // getResourceFunc returns the associated <name>Func method for a defined ripple
 // field or the actual field value if the <name>Func association is not found.
 func getResourceFunc(
-	fieldinf *fieldInfo, v reflect.Value) (reflect.Value, error) {
+	fieldinf *fieldinfo.Fieldinfo, v reflect.Value) (reflect.Value, error) {
 
 	var fn reflect.Value
 
