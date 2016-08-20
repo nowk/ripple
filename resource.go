@@ -18,30 +18,37 @@ type resource struct {
 	Func           reflect.Value
 }
 
-func newResource(f reflect.StructField, v reflect.Value) (*resource, error) {
-
-	fieldinf, err := fieldinfo.New(f)
+func newResource(f reflect.StructField, ctrl reflect.Value) (*resource, error) {
+	fi, err := fieldinfo.New(f)
 	if err != nil {
 		return nil, err
 	}
-	if fieldinf == nil {
-		return nil, nil
+	if fi == nil {
+		return nil, nil // no ripple tag
 	}
 
-	fn, err := getResourceFunc(fieldinf, v)
+	fn, err := getFunc(fi, ctrl)
 	if err != nil {
 		return nil, err
 	}
-	if !fn.Type().ConvertibleTo(fieldinf.Type) {
-		return nil, errTypeMismatch
+	if err := checkFunc(fn, fi); err != nil {
+		return nil, err
 	}
 
 	return &resource{
-		Fieldinfo: fieldinf,
+		Fieldinfo: fi,
 
-		ControllerName: v.Type().Name(),
+		ControllerName: ctrl.Type().Name(),
 		Func:           fn,
 	}, nil
+}
+
+func checkFunc(fn reflect.Value, fi *fieldinfo.Fieldinfo) error {
+	if !fn.Type().ConvertibleTo(fi.Type) {
+		return errTypeMismatch
+	}
+
+	return nil
 }
 
 func (r resource) callName() string {
@@ -92,26 +99,24 @@ func (r resource) callArgs() []reflect.Value {
 
 var errTypeMismatch = errors.New("field and method types do not match")
 
-// getResourceFunc returns the associated <name>Func method for a defined ripple
+// getFunc returns the associated <name>Func method for a defined ripple
 // field or the actual field value if the <name>Func association is not found.
-func getResourceFunc(
-	fieldinf *fieldinfo.Fieldinfo, v reflect.Value) (reflect.Value, error) {
-
+func getFunc(fi *fieldinfo.Fieldinfo, v reflect.Value) (reflect.Value, error) {
 	var fn reflect.Value
 
 	// first search methods
-	fn = v.MethodByName(fieldinf.MethodName())
+	fn = v.MethodByName(fi.MethodName())
 	if fn.IsValid() {
 		return fn, nil
 	}
 
 	// then search fields
-	fn = v.FieldByName(fieldinf.Name)
+	fn = v.FieldByName(fi.Name)
 	if fn.IsValid() && !reflect.ValueOf(fn.Interface()).IsNil() {
 		return fn, nil
 	}
 
-	return fn, errActionNotFound(fieldinf.Name)
+	return fn, errActionNotFound(fi.Name)
 }
 
 type errActionNotFound string
