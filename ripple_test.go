@@ -12,13 +12,15 @@ import (
 )
 
 type CtrlBasic struct {
-	Namespace
-
 	Index  http.HandlerFunc `ripple:"GET /"`
 	Create http.HandlerFunc `ripple:"POST /"`
 	Show   echo.HandlerFunc `ripple:"GET :id"`
 	Update echo.HandlerFunc `ripple:"PUT :id"`
 	Del    echo.HandlerFunc `ripple:"DELETE :id"`
+}
+
+func (CtrlBasic) __Path() string {
+	return "/"
 }
 
 func (CtrlBasic) IndexFunc(w http.ResponseWriter, req *http.Request) {
@@ -50,7 +52,7 @@ func (CtrlBasic) DelFunc(c *echo.Context) error {
 
 func TestAppliesMethodsToNewEchoGroupUsingTagsAsManifest(t *testing.T) {
 	echoMux := echo.New()
-	Mount(&CtrlBasic{Namespace: ""}, echoMux)
+	Mount(&CtrlBasic{}, echoMux)
 
 	for _, v := range []struct {
 		meth, Namespace, extra string

@@ -10,25 +10,26 @@ import (
 
 // Controller is the interface for a Controller to be applied to an echo Group
 type Controller interface {
-	// Path is the namespace ripple will create the Group at, eg /posts
-	Path() string
+
+	// __Path is the namespace the Group at, eg /posts
+	__Path() string
 }
 
 // Mount applies the Controller to the echo via a new Group using the
 // Controller's ripple tags as a manifest to properly associate methods/path and
 // handler.
-func Mount(c Controller, echoMux *echo.Echo) *echo.Group {
-	cvof, ctyp, err := reflectCtrl(c)
+func Mount(c Controller, ech *echo.Echo) *echo.Group {
+	vof, typ, err := reflectCtrl(c)
 	if err != nil {
 		panic(err)
 	}
 
-	grp := echoMux.Group(c.Path())
+	grp := ech.Group(c.__Path())
 
 	i := 0
-	n := ctyp.NumField()
-	for ; i < n; i++ {
-		res, err := resource.New(ctyp.Field(i), cvof)
+	j := typ.NumField()
+	for ; i < j; i++ {
+		res, err := resource.New(typ.Field(i), vof)
 		if err != nil {
 			panic(err)
 		}
@@ -57,4 +58,19 @@ func reflectCtrl(c Controller) (reflect.Value, reflect.Type, error) {
 	}
 
 	return vof, typ, err
+}
+
+// Namespace provides an embeddable type that will allow a struct to implement
+// Controller.
+type Namespace string
+
+var _ Controller = Namespace("")
+
+// Path returns a string implementing Controller
+func (n Namespace) __Path() string {
+	if n == "" {
+		return "/"
+	}
+
+	return string(n)
 }
