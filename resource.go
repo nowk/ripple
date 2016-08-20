@@ -76,8 +76,8 @@ func (r resource) callName() string {
 	return methods.Map[r.Method]
 }
 
-// Set sets the resources on the given group
-func (r resource) Set(grp *echo.Group) {
+// Apply sets the resources on the given group
+func (r resource) Apply(grp *echo.Group) {
 	reflect.
 		ValueOf(grp).
 		MethodByName(r.callName()).

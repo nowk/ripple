@@ -7,9 +7,6 @@ import (
 	"gopkg.in/labstack/echo.v1"
 )
 
-// fieldTagKey is the field tag key for ripple
-const fieldTagKey = "ripple"
-
 // Controller is the interface for a Controller to be applied to an echo Group
 type Controller interface {
 	// Path is the namespace ripple will create the Group at, eg /posts
@@ -38,7 +35,7 @@ func Group(c Controller, echoMux *echo.Echo) *echo.Group {
 			continue // if there is no route
 		}
 
-		res.Set(grp)
+		res.Apply(grp)
 	}
 
 	return grp
