@@ -71,7 +71,7 @@ func Test_newFieldInfoParsesTagAndReturnsAfieldInfo(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(exp, info) {
-			t.Errorf("expected %s to equal %s", exp, info)
+			t.Errorf("expected %v to equal %v", exp, info)
 		}
 	}
 }
@@ -86,7 +86,7 @@ func Test_newFieldInfoErrorsOnInvalidTagFormat(t *testing.T) {
 		})
 
 		if err != errTagFormat {
-			t.Error("expected tag format error, got %s", err)
+			t.Errorf("expected tag format error, got %s", err)
 		}
 	}
 }
