@@ -97,23 +97,7 @@ func TestAccessingInternalFields(t *testing.T) {
 	}
 }
 
-type CtrlMethodNotFound struct {
-	Namespace
-
-	Index http.HandlerFunc `ripple:"GET /"`
-}
-
-func TestPanicOnnewRouteError(t *testing.T) {
-	err := catch(func() {
-		Group(&CtrlMethodNotFound{}, echo.New())
-	})
-
-	if errActionNotFound("Index") != err {
-		t.Errorf("expected action not found error, got %s", err)
-	}
-}
-
-func TestPanicsIfNotAStruct(t *testing.T) {
+func TestPanicsObjectToGroupIsNotAStruct(t *testing.T) {
 	err := catch(func() {
 		Group(Namespace("/posts"), echo.New())
 	})
@@ -129,7 +113,7 @@ type CtrlAssignOnField struct {
 	Index http.HandlerFunc `ripple:"GET /"`
 }
 
-func TestUseAssignedHandlerOnField(t *testing.T) {
+func TestAssignedHandlerOnConstruction(t *testing.T) {
 	w := send("GET", "/", func(echoMux *echo.Echo) {
 		Group(&CtrlAssignOnField{
 			Index: func(w http.ResponseWriter, req *http.Request) {
@@ -143,7 +127,7 @@ func TestUseAssignedHandlerOnField(t *testing.T) {
 	}
 }
 
-func TestPanicWhenAssignableHandlerIsNotAssigned(t *testing.T) {
+func TestPanicOnUndefinedHandler(t *testing.T) {
 	err := catch(func() {
 		Group(&CtrlAssignOnField{}, echo.New())
 	})
