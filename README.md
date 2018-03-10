@@ -5,18 +5,14 @@
 
 ---
 
-[![CircleCI](https://circleci.com/gh/nowk/ripple.svg?style=svg)][circleci]
+[![CircleCI](https://circleci.com/gh/nowk/ripple/tree/v1.svg?style=svg)][circleci]
 [![Build Status](http://img.shields.io/travis/nowk/ripple.svg?style=flat-square)][travis]
 [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][godoc]
 
 
 ## Install
 
-    go get github.com/nowk/ripple
-
-*gopkg.in* version
-
-    go get gopkg.in/nowk/ripple.v0
+    go get gopkg.in/nowk/ripple.v1
 
 
 ## Usage
@@ -162,6 +158,6 @@ MIT
 
 
 [splash]: https://s3.amazonaws.com/assets.github.com/splash-ripple.svg
-[circleci]: https://circleci.com/gh/nowk/ripple
+[circleci]: https://circleci.com/gh/nowk/ripple/tree/v1
 [travis]: https://travis-ci.org/nowk/ripple
-[godoc]: http://godoc.org/gopkg.in/nowk/ripple.v0
+[godoc]: http://godoc.org/gopkg.in/nowk/ripple.v1
