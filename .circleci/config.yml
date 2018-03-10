@@ -1,7 +1,7 @@
 version: 2
 
 defaults: &defaults
-  working_directory: /go/src/github.com/nowk/ripple
+  working_directory: /go/src/gopkg.in/nowk/ripple.v1
   docker:
     - image: golang:1.10
 
@@ -9,8 +9,7 @@ jobs:
   build:
     <<: *defaults
     steps:
-      - checkout
-
+      - run: go get -u gopkg.in/nowk/ripple.v1
       - run: go get -u github.com/golang/dep/cmd/dep
       - run: dep ensure
       - run: go test -v ./...
