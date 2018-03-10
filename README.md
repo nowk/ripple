@@ -2,6 +2,9 @@
 
 > Structured controllers for [Echo](https://github.com/labstack/echo)
 
+
+---
+
 [![CircleCI](https://circleci.com/gh/nowk/ripple.svg?style=svg)][circleci]
 [![Build Status](http://img.shields.io/travis/nowk/ripple.svg?style=flat-square)][travis]
 [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][godoc]
@@ -14,7 +17,6 @@
 *gopkg.in* version
 
     go get gopkg.in/nowk/ripple.v0
-
 
 
 ## Usage
