@@ -1,13 +1,10 @@
-# ripple
+![ripple][splash]
 
-[![Build Status](http://img.shields.io/travis/nowk/ripple.svg?style=flat-square)][0]
-[![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][1]
+> Structured controllers for [Echo](https://github.com/labstack/echo)
 
-  [0]: https://travis-ci.org/nowk/ripple
-  [1]: http://godoc.org/gopkg.in/nowk/ripple.v0
-
-
-Use structured controllers for [Echo](https://github.com/labstack/echo)
+[![CircleCI](https://circleci.com/gh/nowk/ripple.svg?style=svg)][circleci]
+[![Build Status](http://img.shields.io/travis/nowk/ripple.svg?style=flat-square)][travis]
+[![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][godoc]
 
 
 ## Install
@@ -154,3 +151,9 @@ Group.
 ## License
 
 MIT
+
+
+[splash]: https://s3.amazonaws.com/assets.github.com/splash-ripple.svg
+[circleci]: https://circleci.com/gh/nowk/ripple
+[travis]: https://travis-ci.org/nowk/ripple
+[godoc]: http://godoc.org/gopkg.in/nowk/ripple.v0
